@@ -9,6 +9,7 @@ from app.schemas.application import ApplicationCreate, ApplicationStageChange, A
 from app.services.exceptions import NotFoundError, ValidationError
 from app.services.job import get_job
 from app.services.resume import get_resume
+from app.services.scoring import refresh_application_scores
 
 
 def list_applications(
@@ -59,6 +60,7 @@ def create_application(db: Session, user_id: int, payload: ApplicationCreate) ->
     db.add(application)
     db.flush()
     _record_stage_change(db, application, None, application.stage)
+    refresh_application_scores(db, application)
     db.commit()
     db.refresh(application)
     return application
@@ -75,8 +77,11 @@ def update_application(
         _validate_resume(db, user_id, data["resume_version_id"])
     if "stage" in data and data["stage"] is not None and data["stage"] != application.stage:
         raise ValidationError("Use change_stage to update application stage")
+    score_fields = {"match_score", "priority_score", "response_likelihood"}
     for field, value in data.items():
-        setattr(application, field, value)
+        if field not in score_fields:
+            setattr(application, field, value)
+    refresh_application_scores(db, application)
     db.commit()
     db.refresh(application)
     return application
@@ -93,6 +98,7 @@ def change_stage(
     if payload.stage == ApplicationStage.APPLIED and application.applied_at is None:
         application.applied_at = datetime.now(timezone.utc)
     _record_stage_change(db, application, previous, payload.stage)
+    refresh_application_scores(db, application)
     db.commit()
     db.refresh(application)
     return application

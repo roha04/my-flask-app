@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Application #{{ application.id }} — Job Hunt CRM{% endblock %}
+{% block content %}
+<div class="mb-3">
+  <a href="/applications">&larr; Back to board</a>
+</div>
+<h1 class="h3">{{ application.job.title }}</h1>
+<p class="text-muted">{{ application.job.company.name }} · Stage: <strong>{{ application.stage.value }}</strong></p>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">Scores & recommendation</div>
+      <div class="card-body">
+        <div class="row text-center mb-3">
+          <div class="col">
+            <div class="text-muted small">Match</div>
+            <div class="h4">{% if application.match_score is not none %}{{ (application.match_score * 100)|round(1) }}%{% else %}—{% endif %}</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small">Priority</div>
+            <div class="h4">{% if application.priority_score is not none %}{{ (application.priority_score * 100)|round(1) }}%{% else %}—{% endif %}</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small">Response likelihood</div>
+            <div class="h4">{% if application.response_likelihood is not none %}{{ (application.response_likelihood * 100)|round(1) }}%{% else %}—{% endif %}</div>
+          </div>
+        </div>
+        <div class="alert alert-info mb-0">
+          <strong>Next action:</strong> {{ suggestion.action }}
+          <span class="text-muted">({{ suggestion.days_in_stage }} days in stage)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">Stage history</div>
+      <ul class="list-group list-group-flush">
+        {% for item in history %}
+        <li class="list-group-item small">
+          {{ item.from_stage.value if item.from_stage else "Start" }} → {{ item.to_stage.value }}
+          <span class="text-muted">{{ item.changed_at.strftime("%Y-%m-%d %H:%M") if item.changed_at else "" }}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No history.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header">Notes</div>
+      <div class="card-body">
+        {% for note in notes %}
+        <div class="border rounded p-2 mb-2 small">{{ note.body }}</div>
+        {% else %}
+        <p class="text-muted small">No notes yet.</p>
+        {% endfor %}
+        <form method="post" action="/applications/{{ application.id }}/notes">
+          <textarea class="form-control mb-2" name="body" rows="3" required placeholder="Add a note..."></textarea>
+          <button class="btn btn-sm btn-primary" type="submit">Add note</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header">Update stage</div>
+      <div class="card-body">
+        <form method="post" action="/applications/{{ application.id }}/stage">
+          <select class="form-select mb-2" name="stage">
+            {% for stage in stages %}
+            <option value="{{ stage.value }}" {% if application.stage == stage %}selected{% endif %}>{{ stage.value }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary w-100" type="submit">Update</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

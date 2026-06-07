@@ -52,6 +52,9 @@ def test_job_and_application_flow(client):
         },
     ).json()
 
+    assert application["match_score"] is not None
+    assert application["priority_score"] is not None
+
     response = client.patch(
         f"/api/v1/applications/{application['id']}/stage",
         json={"stage": ApplicationStage.APPLIED.value},

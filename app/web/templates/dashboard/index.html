@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Job Hunt CRM{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Dashboard</h1>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Active applications</div>
+      <div class="display-6">{{ stats.active_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Stale applications</div>
+      <div class="display-6 text-warning">{{ stats.stale_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Avg match score</div>
+      <div class="display-6">{{ stats.avg_match_pct }}%</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Pipeline bottleneck</div>
+      <div class="h4 mb-0">{{ stats.bottleneck or "—" }}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">Avg days by stage</div>
+  <div class="card-body">
+    {% if pipeline.avg_days_by_stage %}
+    <ul class="mb-0">
+      {% for stage, days in pipeline.avg_days_by_stage.items() %}
+      <li><strong>{{ stage }}</strong>: {{ days }} days</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted mb-0">No pipeline history yet. Create applications and move them through stages.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

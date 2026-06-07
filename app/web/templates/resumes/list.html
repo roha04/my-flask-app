@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Resumes — Job Hunt CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Resumes</h1>
+  <a class="btn btn-primary" href="/resumes/new">Add resume</a>
+</div>
+<div class="row g-3">
+  {% for resume in resumes %}
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <h2 class="h5">{{ resume.title }}</h2>
+          {% if resume.is_active %}<span class="badge text-bg-success">Active</span>{% endif %}
+        </div>
+        <pre class="small text-muted mb-3" style="white-space: pre-wrap; max-height: 120px; overflow: hidden;">{{ resume.content[:300] }}{% if resume.content|length > 300 %}...{% endif %}</pre>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-secondary" href="/resumes/{{ resume.id }}/edit">Edit</a>
+          {% if not resume.is_active %}
+          <form method="post" action="/resumes/{{ resume.id }}/activate">
+            <button class="btn btn-sm btn-outline-primary" type="submit">Set active</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 text-muted">No resumes yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

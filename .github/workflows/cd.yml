@@ -1,0 +1,230 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Deploy action
+        required: true
+        default: deploy-all
+        type: choice
+        options:
+          - deploy-all
+          - rollback-production
+      rollback_sha:
+        description: Git SHA for production rollback (rollback-production only)
+        required: false
+        type: string
+
+concurrency:
+  group: cd-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-staging:
+    name: Deploy staging
+    runs-on: ubuntu-latest
+    if: >
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.action == 'deploy-all'
+      ) ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push'
+      )
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Validate Railway secrets
+        run: |
+          test -n "$RAILWAY_TOKEN" || (echo "Missing RAILWAY_TOKEN secret" && exit 1)
+          test -n "$RAILWAY_PROJECT_ID" || (echo "Missing RAILWAY_PROJECT_ID secret" && exit 1)
+          test -n "${{ secrets.RAILWAY_SERVICE_ID_STAGING }}" || (echo "Missing RAILWAY_SERVICE_ID_STAGING" && exit 1)
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@4.5.4
+
+      - name: Deploy to staging
+        run: railway up --service "${{ secrets.RAILWAY_SERVICE_ID_STAGING }}" --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+      - name: Write deploy manifest (staging)
+        run: |
+          mkdir -p deploy-manifests
+          cat > deploy-manifests/staging.json <<EOF
+          {
+            "environment": "staging",
+            "service_id": "${{ secrets.RAILWAY_SERVICE_ID_STAGING }}",
+            "git_sha": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "active_slot": "blue"
+          }
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staging-manifest
+          path: deploy-manifests/staging.json
+
+  smoke-staging:
+    name: Smoke test staging
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check staging
+        run: bash scripts/smoke_test.sh "${{ secrets.STAGING_URL }}"
+        env:
+          EXPECTED_MIN_STATUS: ok
+
+      - name: Summary
+        run: |
+          echo "## Staging smoke tests passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: ${{ secrets.STAGING_URL }}" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-production-blue:
+    name: Deploy production (blue slot)
+    needs: smoke-staging
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@4.5.4
+
+      - name: Deploy inactive blue slot
+        run: railway up --service "${{ secrets.RAILWAY_SERVICE_ID_PROD_BLUE }}" --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+      - name: Smoke test blue slot
+        run: bash scripts/smoke_test.sh "${{ secrets.PRODUCTION_BLUE_URL }}"
+
+      - name: Write deploy manifest (blue)
+        run: |
+          mkdir -p deploy-manifests
+          cat > deploy-manifests/production-blue.json <<EOF
+          {
+            "environment": "production",
+            "slot": "blue",
+            "service_id": "${{ secrets.RAILWAY_SERVICE_ID_PROD_BLUE }}",
+            "git_sha": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "active_slot": "blue"
+          }
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-blue-manifest
+          path: deploy-manifests/production-blue.json
+
+  deploy-production-green:
+    name: Switch production (green slot)
+    needs: deploy-production-blue
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@4.5.4
+
+      - name: Deploy active green slot (traffic target)
+        run: railway up --service "${{ secrets.RAILWAY_SERVICE_ID_PROD_GREEN }}" --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+      - name: Canary-style version checks
+        run: |
+          bash scripts/smoke_test.sh "${{ secrets.PRODUCTION_URL }}"
+          for i in $(seq 1 10); do
+            curl -fsS "${{ secrets.PRODUCTION_URL }}/version" > /dev/null
+          done
+
+      - name: Write deploy manifest (green active)
+        run: |
+          mkdir -p deploy-manifests
+          cat > deploy-manifests/production-active.json <<EOF
+          {
+            "environment": "production",
+            "slot": "green",
+            "service_id": "${{ secrets.RAILWAY_SERVICE_ID_PROD_GREEN }}",
+            "git_sha": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "active_slot": "green",
+            "previous_slot": "blue"
+          }
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-active-manifest
+          path: deploy-manifests/production-active.json
+
+      - name: CD summary
+        run: |
+          echo "## Production deployment complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Blue slot validated: ${{ secrets.PRODUCTION_BLUE_URL }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Active URL: ${{ secrets.PRODUCTION_URL }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Strategy: blue-green (blue deploy + smoke, then green switch)" >> "$GITHUB_STEP_SUMMARY"
+
+  rollback-production:
+    name: Rollback production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback-production'
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.rollback_sha }}
+
+      - name: Validate rollback SHA
+        run: |
+          test -n "${{ github.event.inputs.rollback_sha }}" || (echo "rollback_sha is required" && exit 1)
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@4.5.4
+
+      - name: Redeploy previous version to green slot
+        run: railway up --service "${{ secrets.RAILWAY_SERVICE_ID_PROD_GREEN }}" --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+      - name: Post-rollback smoke test
+        run: bash scripts/smoke_test.sh "${{ secrets.PRODUCTION_URL }}"
+
+      - name: Rollback summary
+        run: |
+          echo "## Production rollback" >> "$GITHUB_STEP_SUMMARY"
+          echo "Redeployed SHA: ${{ github.event.inputs.rollback_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Active URL: ${{ secrets.PRODUCTION_URL }}" >> "$GITHUB_STEP_SUMMARY"

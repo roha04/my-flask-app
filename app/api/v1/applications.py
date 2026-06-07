@@ -5,6 +5,7 @@ from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.enums import ApplicationStage
 from app.models.user import User
+from app.schemas.analytics import SuggestActionResponse
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationRead,
@@ -12,6 +13,7 @@ from app.schemas.application import (
     ApplicationUpdate,
     StageHistoryRead,
 )
+from app.services import analytics as analytics_service
 from app.services import application as application_service
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -92,3 +94,12 @@ def delete_application(
     current_user: User = Depends(get_current_user),
 ) -> None:
     application_service.delete_application(db, application_id, current_user.id)
+
+
+@router.get("/{application_id}/suggest-action", response_model=SuggestActionResponse)
+def suggest_application_action(
+    application_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    return analytics_service.get_suggested_action(db, application_id, current_user.id)

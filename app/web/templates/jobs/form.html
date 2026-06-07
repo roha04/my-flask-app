@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Job Hunt CRM{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">{{ title }}</h1>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Company</label>
+        <select class="form-select" name="company_id" required>
+          {% for company in companies %}
+          <option value="{{ company.id }}" {% if job and job.company_id == company.id %}selected{% endif %}>{{ company.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input class="form-control" name="title" value="{{ job.title if job else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="6">{{ job.description if job else '' }}</textarea>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Salary min</label>
+          <input class="form-control" type="number" name="salary_min" value="{{ job.salary_min if job and job.salary_min else '' }}">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Salary max</label>
+          <input class="form-control" type="number" name="salary_max" value="{{ job.salary_max if job and job.salary_max else '' }}">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Status</label>
+          <select class="form-select" name="status">
+            {% for status in job_statuses %}
+            <option value="{{ status.value }}" {% if job and job.status == status %}selected{% elif not job and status.value == 'open' %}selected{% endif %}>{{ status.value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Location</label>
+        <input class="form-control" name="location" value="{{ job.location if job and job.location else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">URL</label>
+        <input class="form-control" name="url" value="{{ job.url if job and job.url else '' }}">
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-link" href="/jobs">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

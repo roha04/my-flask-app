@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Jobs — Job Hunt CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Jobs</h1>
+  <a class="btn btn-primary" href="/jobs/new">Add job</a>
+</div>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Title</th><th>Company</th><th>Location</th><th>Salary</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td><a href="/jobs/{{ job.id }}">{{ job.title }}</a></td>
+        <td>{{ job.company.name }}</td>
+        <td>{{ job.location or "—" }}</td>
+        <td>
+          {% if job.salary_min or job.salary_max %}
+            {{ job.salary_min or "?" }}–{{ job.salary_max or "?" }} {{ job.currency }}
+          {% else %}—{% endif %}
+        </td>
+        <td><span class="badge text-bg-secondary">{{ job.status.value }}</span></td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="/jobs/{{ job.id }}/edit">Edit</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-muted">No jobs yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

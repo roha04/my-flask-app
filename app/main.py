@@ -8,6 +8,7 @@ from app.api.v1.router import api_router
 from app.config import get_settings
 from app.database import get_db
 from app.version import __version__
+from app.web.routes import web_router
 
 settings = get_settings()
 
@@ -15,11 +16,12 @@ app = FastAPI(
     title="Job Hunt CRM",
     description="Application tracker with resume-to-JD match scoring",
     version=__version__,
-    debug=settings.debug,
+    debug=settings.debug and not settings.is_production,
 )
 
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, session_cookie="session")
 register_exception_handlers(app)
+app.include_router(web_router)
 app.include_router(api_router)
 
 

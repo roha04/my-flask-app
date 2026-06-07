@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Companies — Job Hunt CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Companies</h1>
+  <a class="btn btn-primary" href="/companies/new">Add company</a>
+</div>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Name</th><th>Industry</th><th>Size</th><th>Website</th><th></th></tr></thead>
+      <tbody>
+      {% for company in companies %}
+      <tr>
+        <td>{{ company.name }}</td>
+        <td>{{ company.industry or "—" }}</td>
+        <td>{{ company.size or "—" }}</td>
+        <td>{% if company.website %}<a href="{{ company.website }}" target="_blank">Link</a>{% else %}—{% endif %}</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="/companies/{{ company.id }}/edit">Edit</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-muted">No companies yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

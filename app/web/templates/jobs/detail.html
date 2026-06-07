@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} — Job Hunt CRM{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="h3">{{ job.title }}</h1>
+    <p class="text-muted mb-0">{{ job.company.name }}{% if job.location %} · {{ job.location }}{% endif %}</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="/jobs/{{ job.id }}/edit">Edit</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">Description</div>
+      <div class="card-body"><pre class="mb-0" style="white-space: pre-wrap;">{{ job.description }}</pre></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">Keywords</div>
+      <div class="card-body">
+        {% for keyword in keywords %}
+        <span class="badge text-bg-primary me-1 mb-1">{{ keyword }}</span>
+        {% else %}
+        <span class="text-muted">No keywords extracted.</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-body small">
+        <div><strong>Status:</strong> {{ job.status.value }}</div>
+        <div><strong>Salary:</strong>
+          {% if job.salary_min or job.salary_max %}{{ job.salary_min or "?" }}–{{ job.salary_max or "?" }} {{ job.currency }}{% else %}—{% endif %}
+        </div>
+        {% if job.url %}<div class="mt-2"><a href="{{ job.url }}" target="_blank">Job posting</a></div>{% endif %}
+        <div class="mt-3"><a href="/applications/new?job_id={{ job.id }}">Track application</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
