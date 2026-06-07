@@ -1,7 +1,10 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
+from app.api.errors import register_exception_handlers
+from app.api.v1.router import api_router
 from app.config import get_settings
 from app.database import get_db
 from app.version import __version__
@@ -14,6 +17,10 @@ app = FastAPI(
     version=__version__,
     debug=settings.debug,
 )
+
+app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, session_cookie="session")
+register_exception_handlers(app)
+app.include_router(api_router)
 
 
 @app.get("/health")
