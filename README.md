@@ -8,8 +8,8 @@
 
 | Середовище | URL |
 |------------|-----|
-| **Production** | _додай свій URL (jobcrm-prod-green)_ |
-| **Staging** | _додай свій URL (jobcrm-staging)_ |
+| **Production** | _URL (jobcrm-prod-green)_ |
+| **Staging** | _URL (jobcrm-staging)_ |
 
 **Демо-вхід:** `xxxxxxxxxx` / `xxxxxxxx`
 

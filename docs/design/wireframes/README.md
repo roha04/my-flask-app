@@ -43,4 +43,3 @@ flowchart TD
 - **Scores:** badges match % і priority на kanban-картках
 - **Keywords:** badge list на job detail (TF-IDF extract)
 
-Скріншоти: зняти з deployed URL після login `demo@jobcrm.dev` і додати в цю папку, якщо вимагає курс.
