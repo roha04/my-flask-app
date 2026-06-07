@@ -1,49 +1,49 @@
-# Project Charter — Job Hunt CRM
+# Хартія проєкту — Job Hunt CRM
 
-## Problem statement
+## Проблема
 
-Job seekers track applications across spreadsheets, email, and job boards. There is no single place to manage pipeline stages, resume versions, match quality against job descriptions, and follow-up actions.
+Шукачі роботи ведуть відгуки в таблицях, пошті та на job boards. Немає єдиного місця для стадій pipeline, версій резюме, оцінки відповідності JD і нагадувань про наступні кроки.
 
-## Product vision
+## Бачення продукту
 
-**Job Hunt CRM** is a personal application tracker (Linear-style) for job search: companies, jobs, applications, resume versions, and algorithm-assisted insights (match score, priority, next action).
+**Job Hunt CRM** — особистий трекер відгуків (у стилі Linear): компанії, вакансії, заявки, версії резюме та алгоритмічні підказки (match score, priority, next action).
 
-## Goals
+## Цілі
 
-1. Centralize job search data (companies, jobs, contacts, applications, notes).
-2. Automate resume-to-JD match scoring and application prioritization.
-3. Provide analytics: pipeline velocity, stale applications, salary benchmark.
-4. Deliver via web UI + REST API with CI/CD to Railway.
+1. Централізувати дані job search (компанії, вакансії, контакти, заявки, нотатки).
+2. Автоматизувати оцінку резюме vs JD і пріоритизацію заявок.
+3. Дати аналітику: швидкість pipeline, «застарілі» заявки, salary benchmark.
+4. Поставити веб-UI + REST API з CI/CD на Railway.
 
-## Success criteria
+## Критерії успіху
 
-| Criterion | Target |
-|-----------|--------|
-| Core CRUD entities | 7 entities fully functional |
-| Algorithm modules | 8 modules with unit tests |
-| Automated tests | ≥ 50, coverage ≥ 75% |
-| Manual test cases | ≥ 100 documented |
-| CI pipeline | lint + test on every PR |
-| CD pipeline | staging → smoke → production with rollback |
+| Критерій | Ціль |
+|----------|------|
+| CRUD-сутності | 7 сутностей повністю функціональні |
+| Алгоритми | 8 модулів з unit-тестами |
+| Автотести | ≥ 50, coverage ≥ 75% |
+| Ручні тест-кейси | ≥ 100 задокументовано |
+| CI pipeline | lint + test на кожен PR |
+| CD pipeline | staging → smoke → production з rollback |
 
-## Stakeholders
+## Стейкхолдери
 
-| Stakeholder | Interest |
-|-------------|----------|
-| Job seeker (end user) | Track applications, improve match rate |
-| Course instructor | Process artifacts, testing, CI/CD |
-| Team | Portfolio / academic project delivery |
+| Стейкхолдер | Інтерес |
+|-------------|---------|
+| Шукач роботи (користувач) | Відстежувати відгуки, покращити match rate |
+| Викладач курсу | Процесні артефакти, тестування, CI/CD |
+| Команда | Портфоліо / академічна здача проєкту |
 
-## Constraints
+## Обмеження
 
-- No paid cloud budget required beyond Railway free tier
-- Single monolith deployment (FastAPI + Jinja2)
-- SQLite locally; PostgreSQL on Railway
-- Delivery timeline: one development sprint + documentation
+- Без платного cloud, окрім Railway free tier
+- Моноліт (FastAPI + Jinja2)
+- SQLite локально; PostgreSQL на Railway
+- Термін: один спринт розробки + документація
 
-## Out of scope (v1)
+## Поза scope (v1)
 
-- Mobile native app
-- Email/calendar integrations
-- Multi-tenant SaaS billing
-- ML model training (TF-IDF heuristics only)
+- Нативний mobile
+- Інтеграції email/calendar
+- Multi-tenant SaaS з billing
+- Навчання ML-моделей (лише TF-IDF евристики)

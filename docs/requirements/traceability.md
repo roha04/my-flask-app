@@ -1,9 +1,9 @@
-# Requirements traceability matrix
+# Матриця трасування вимог
 
-Links user stories → API/UI → automated tests.
+Зв'язок user stories → API/UI → автоматизовані тести.
 
-| Story ID | Endpoint / UI | Automated test(s) |
-|----------|---------------|-------------------|
+| Story ID | Endpoint / UI | Автотест(и) |
+|----------|---------------|-------------|
 | US-AUTH-01 | POST `/api/v1/auth/register` | `test_register_and_login` |
 | US-AUTH-02 | POST `/api/v1/auth/login` | `test_register_and_login`, `test_me_after_login` |
 | US-AUTH-03 | POST `/api/v1/auth/logout` | `test_logout` |
@@ -27,27 +27,27 @@ Links user stories → API/UI → automated tests.
 | US-SYS-01 | `/health` | `test_health_endpoint` |
 | US-SYS-06 | seed | `test_seed_creates_demo_data`, `test_seed_is_idempotent` |
 
-## Use case diagram (high level)
+## Діаграма use case (high level)
 
 ```mermaid
 flowchart LR
-  User((Job Seeker))
+  User((Шукач роботи))
   User --> Auth[Register / Login]
-  User --> ManageCo[Manage Companies]
-  User --> ManageJobs[Manage Jobs]
-  User --> ManageRes[Manage Resumes]
-  User --> TrackApp[Track Applications]
-  User --> Analytics[View Analytics]
-  TrackApp --> MatchScore[Compute Match Score]
-  TrackApp --> ChangeStage[Change Pipeline Stage]
+  User --> ManageCo[Компанії]
+  User --> ManageJobs[Вакансії]
+  User --> ManageRes[Резюме]
+  User --> TrackApp[Заявки]
+  User --> Analytics[Аналітика]
+  TrackApp --> MatchScore[Match Score]
+  TrackApp --> ChangeStage[Зміна стадії]
   Analytics --> Pipeline[Pipeline Velocity]
   Analytics --> Stale[Stale Detection]
 ```
 
-## Algorithm traceability
+## Трасування алгоритмів
 
-| ALG ID | Function | Unit tests |
-|--------|----------|------------|
+| ALG ID | Функція | Unit tests |
+|--------|---------|------------|
 | ALG-001 | `match_resume_to_jd` | `tests/unit/algorithms/test_match.py` (4) |
 | ALG-002 | `extract_keywords` | `test_keywords.py` (4) |
 | ALG-003 | `score_application_priority` | `test_priority.py` (4) |
@@ -57,4 +57,4 @@ flowchart LR
 | ALG-007 | `suggest_next_action` | `test_actions.py` (4) |
 | ALG-008 | `pipeline_velocity` | `test_pipeline.py` (4) |
 
-**Total automated tests: 56**
+**Всього автоматизованих тестів: 56**

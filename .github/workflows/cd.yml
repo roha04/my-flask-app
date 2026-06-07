@@ -1,10 +1,6 @@
 name: CD
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       action:
@@ -21,7 +17,7 @@ on:
         type: string
 
 concurrency:
-  group: cd-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  group: cd-${{ github.ref_name }}
   cancel-in-progress: false
 
 permissions:
@@ -31,23 +27,12 @@ jobs:
   deploy-staging:
     name: Deploy staging
     runs-on: ubuntu-latest
-    if: >
-      (
-        github.event_name == 'workflow_dispatch' &&
-        github.event.inputs.action == 'deploy-all'
-      ) ||
-      (
-        github.event_name == 'workflow_run' &&
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push'
-      )
+    if: github.event.inputs.action == 'deploy-all'
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Validate Railway secrets
         run: |
@@ -71,7 +56,7 @@ jobs:
           {
             "environment": "staging",
             "service_id": "${{ secrets.RAILWAY_SERVICE_ID_STAGING }}",
-            "git_sha": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "git_sha": "${{ github.sha }}",
             "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "active_slot": "blue"
           }
@@ -86,6 +71,7 @@ jobs:
     name: Smoke test staging
     needs: deploy-staging
     runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'deploy-all'
     steps:
       - name: Health check staging
         run: bash scripts/smoke_test.sh "${{ secrets.STAGING_URL }}"
@@ -101,13 +87,12 @@ jobs:
     name: Deploy production (blue slot)
     needs: smoke-staging
     runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'deploy-all'
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli@4.5.4
@@ -129,7 +114,7 @@ jobs:
             "environment": "production",
             "slot": "blue",
             "service_id": "${{ secrets.RAILWAY_SERVICE_ID_PROD_BLUE }}",
-            "git_sha": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "git_sha": "${{ github.sha }}",
             "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "active_slot": "blue"
           }
@@ -144,13 +129,12 @@ jobs:
     name: Switch production (green slot)
     needs: deploy-production-blue
     runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'deploy-all'
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli@4.5.4
@@ -176,7 +160,7 @@ jobs:
             "environment": "production",
             "slot": "green",
             "service_id": "${{ secrets.RAILWAY_SERVICE_ID_PROD_GREEN }}",
-            "git_sha": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "git_sha": "${{ github.sha }}",
             "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "active_slot": "green",
             "previous_slot": "blue"
@@ -198,7 +182,7 @@ jobs:
   rollback-production:
     name: Rollback production
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'rollback-production'
+    if: github.event.inputs.action == 'rollback-production'
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}

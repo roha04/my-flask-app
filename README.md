@@ -1,132 +1,54 @@
 # Job Hunt CRM
 
-Application tracker with resume-to-JD match scoring, analytics, and a web dashboard.
+Особистий трекер відгуків на роботу: компанії, вакансії, резюме, kanban-дошка заявок і аналітика з оцінкою відповідності резюме тексту вакансії (TF-IDF).
 
-**Course documentation:** [docs/README.md](docs/README.md) (user stories, manual tests, CD process, charter).
+---
 
-## Stack
+## Живе демо
 
-- **FastAPI** + Jinja2 UI + REST API (`/api/v1`)
-- **SQLAlchemy** + Alembic + PostgreSQL (Railway) / SQLite (local)
-- **pytest** + GitHub Actions CI/CD
-- **Railway** deployment
+| Середовище | URL |
+|------------|-----|
+| **Production** | _додай свій URL (jobcrm-prod-green)_ |
+| **Staging** | _додай свій URL (jobcrm-staging)_ |
 
-## Local setup
+**Демо-вхід:** `xxxxxxxxxx` / `xxxxxxxx`
 
-```bash
-python -m venv .venv
-.venv\Scripts\pip install -r requirements.txt   # Windows
-cp .env.example .env                            # optional
-alembic upgrade head
-uvicorn app.main:app --reload
-```
+- Веб-інтерфейс: `/`
+- API (Swagger): `/docs`
+- Health check: `/health`
 
-- UI: http://127.0.0.1:8000/
-- API docs: http://127.0.0.1:8000/docs
-- Health: http://127.0.0.1:8000/health
+> На free tier перший запит після простою може зайняти 10–30 секунд.
 
-### Demo seed (optional)
+---
 
-```bash
-python -m app.seed
-# demo@jobcrm.dev / demo12345
-```
+## Репозиторій і CI/CD
 
-## Tests & lint
+- **GitHub:** [roha04/my-flask-app](https://github.com/roha04/my-flask-app)
+- **GitHub Actions:** [workflows](https://github.com/roha04/my-flask-app/actions) — **CI** автоматично на push; **CD** вручну (Actions → CD → `deploy-all`): Railway, smoke tests, blue-green, rollback
 
-```bash
-ruff check app tests alembic
-pytest --cov=app --cov-fail-under=75
-```
+---
 
-## Railway setup (one-time)
+## Можливості
 
-1. Create a [Railway](https://railway.app) project and connect this GitHub repo.
-2. Add **PostgreSQL** plugin → Railway sets `DATABASE_URL` on the web service.
-3. Create **3 web services** in the same project (free tier workaround for blue/green):
-   - `jobcrm-staging`
-   - `jobcrm-prod-blue` (inactive slot)
-   - `jobcrm-prod-green` (active public URL)
-4. Set environment variables on each web service:
+- CRUD: компанії, контакти, вакансії, резюме, заявки, нотатки
+- Kanban за 8 стадіями pipeline (Wishlist → Offer / Rejected)
+- 8 алгоритмів: match score, keywords, priority, likelihood, salary benchmark, stale detection, next action, pipeline velocity
+- Dashboard з KPI: активні заявки, stale, середній match, bottleneck
+- REST API `/api/v1` + Jinja2 UI
 
-| Variable | Example |
-|----------|---------|
-| `DATABASE_URL` | from Postgres plugin (reference) |
-| `SECRET_KEY` | long random string |
-| `ENV` | `production` |
-| `DEBUG` | `false` |
-| `SEED_DEMO_DATA` | `true` on staging only (first deploy) |
+---
 
-5. Railway uses [`railway.toml`](railway.toml) → runs migrations + uvicorn via [`scripts/start.sh`](scripts/start.sh).
+## Стек
 
-6. Create a **Project Token** in Railway → GitHub secret `RAILWAY_TOKEN`.
+FastAPI · SQLAlchemy · Alembic · PostgreSQL (Railway) · pytest · GitHub Actions · Railway
 
-## GitHub Actions secrets
+---
 
-| Secret | Description |
-|--------|-------------|
-| `RAILWAY_TOKEN` | Railway project token |
-| `RAILWAY_PROJECT_ID` | Project ID |
-| `RAILWAY_SERVICE_ID_STAGING` | Staging service ID |
-| `RAILWAY_SERVICE_ID_PROD_BLUE` | Blue (inactive) service ID |
-| `RAILWAY_SERVICE_ID_PROD_GREEN` | Green (active) service ID |
-| `STAGING_URL` | `https://jobcrm-staging-....up.railway.app` |
-| `PRODUCTION_BLUE_URL` | Blue service public URL |
-| `PRODUCTION_URL` | Green / primary production URL |
+## Документація проєкту
 
-## CI/CD pipelines
+Повний пакет артефактів курсу: [docs/README.md](docs/README.md)
 
-See also [docs/process/cd-process.md](docs/process/cd-process.md) for rollback and blue-green details.
-
-### CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
-
-- **lint** — Ruff
-- **test** — pytest, coverage ≥ 75%, artifact upload
-- **semver** — on tag `v*.*.*`, validates tag matches [`app/version.py`](app/version.py)
-
-### CD ([`.github/workflows/cd.yml`](.github/workflows/cd.yml))
-
-Triggered after **successful CI on `main`**, or manually via **workflow_dispatch**.
-
-```mermaid
-flowchart LR
-  CI[CI success on main] --> Staging[Deploy staging]
-  Staging --> SmokeS[Smoke /health]
-  SmokeS --> Blue[Deploy prod blue slot]
-  Blue --> SmokeB[Smoke blue URL]
-  SmokeB --> Green[Deploy prod green slot]
-  Green --> Canary[10x /version checks]
-  Green --> Active[Production live]
-```
-
-**Blue-green strategy:** deploy + smoke on **blue** slot first, then deploy **green** (public traffic target). Manifests saved as workflow artifacts (`staging.json`, `production-active.json`).
-
-**Rollback:** Actions → CD → **Run workflow** → `rollback-production` + git SHA → redeploys green slot + smoke test.
-
-**Monitoring:** post-deploy jobs call [`scripts/smoke_test.sh`](scripts/smoke_test.sh) (`/health`, `/version`, `/docs`).
-
-## Release versioning (SemVer)
-
-1. Bump [`app/version.py`](app/version.py) → e.g. `1.0.0`
-2. Commit, tag, push:
-
-```bash
-git tag v1.0.0
-git push origin main --tags
-```
-
-CI **semver** job validates `v1.0.0` ↔ `__version__`.
-
-## Project layout
-
-```
-app/
-  algorithms/     # match, keywords, priority, ...
-  api/v1/         # REST endpoints
-  web/            # Jinja2 dashboard
-  services/       # CRUD + scoring + analytics
-  seed.py         # demo data
-scripts/
-  start.sh        # Railway entrypoint
-  smoke_test.sh   # post-deploy checks
-```
+- [Хартія проєкту](docs/product/charter.md)
+- [58 user stories](docs/requirements/user-stories.md)
+- [120 ручних тест-кейсів](docs/testing/manual-test-cases.md)
+- [Процес CD](docs/process/cd-process.md)

@@ -1,21 +1,21 @@
 # Bug log
 
-| ID | Date | Summary | Steps to reproduce | Expected | Actual | Priority | Status | Story |
-|----|------|---------|-------------------|----------|--------|----------|--------|-------|
-| BUG-001 | — | _Example: duplicate register message unclear_ | Register same email twice | Clear error message | Generic 409 | Low | Open | US-AUTH-01 |
-| BUG-002 | — | _Example: kanban scroll on mobile_ | Open /applications on 320px width | All columns accessible | Minor overlap | Low | Open | US-APP-11 |
+| ID | Дата | Короткий опис | Кроки відтворення | Очікувано | Фактично | Пріоритет | Статус | Story |
+|----|------|---------------|-------------------|-----------|----------|-----------|--------|-------|
+| BUG-001 | — | _Приклад: незрозуміле повідомлення при duplicate register_ | Register з тим самим email двічі | Зрозуміла помилка | Generic 409 | Low | Open | US-AUTH-01 |
+| BUG-002 | — | _Приклад: kanban scroll на mobile_ | Відкрити /applications на 320px | Всі колонки доступні | Minor overlap | Low | Open | US-APP-11 |
 
-## Severity definitions
+## Визначення severity
 
-| Priority | Definition |
-|----------|------------|
-| Critical | Data loss, auth bypass, production down |
-| High | Core feature broken, no workaround |
-| Medium | Feature partial, workaround exists |
-| Low | Cosmetic, minor UX |
+| Пріоритет | Опис |
+|-----------|------|
+| Critical | Втрата даних, auth bypass, production down |
+| High | Ключова фіча зламана, без workaround |
+| Medium | Частково зламана, workaround є |
+| Low | Косметика, minor UX |
 
-## Status workflow
+## Workflow статусів
 
 `Open` → `In Progress` → `Fixed` → `Verified` → `Closed`
 
-Add rows during QA execution of [manual-test-cases.md](manual-test-cases.md).
+Додавай рядки під час виконання [manual-test-cases.md](manual-test-cases.md).

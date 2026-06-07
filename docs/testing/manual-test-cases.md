@@ -1,16 +1,16 @@
-# Manual test cases
+# Ручні тест-кейси
 
-**Project:** Job Hunt CRM  
-**Total cases:** 120  
-**Types:** F = Functional, UI = UI, NF = Non-functional, API = API via Swagger/curl
+**Проєкт:** Job Hunt CRM  
+**Всього кейсів:** 120  
+**Типи:** F = Functional, UI = UI, NF = Non-functional, API = API via Swagger/curl
 
 ---
 
-## Authentication (TC-AUTH)
+## Автентифікація (TC-AUTH)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
-| TC-AUTH-001 | US-AUTH-01 | F | Register with valid email/password | 201, user created | H |
+| TC-AUTH-001 | US-AUTH-01 | F | Register з valid email/password | 201, user created | H |
 | TC-AUTH-002 | US-AUTH-01 | F | Register duplicate email | 409 Conflict | H |
 | TC-AUTH-003 | US-AUTH-01 | F | Register password 7 chars | 422 validation error | M |
 | TC-AUTH-004 | US-AUTH-02 | F | Login correct credentials | 200, session cookie set | H |
@@ -25,7 +25,7 @@
 
 ---
 
-## Companies (TC-COMP)
+## Компанії (TC-COMP)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -42,7 +42,7 @@
 
 ---
 
-## Contacts (TC-CONT)
+## Контакти (TC-CONT)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -57,7 +57,7 @@
 
 ---
 
-## Jobs (TC-JOB)
+## Вакансії (TC-JOB)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -76,7 +76,7 @@
 
 ---
 
-## Resumes (TC-RES)
+## Резюме (TC-RES)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -93,7 +93,7 @@
 
 ---
 
-## Applications (TC-APP)
+## Заявки (TC-APP)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -115,7 +115,7 @@
 
 ---
 
-## Notes (TC-NOTE)
+## Нотатки (TC-NOTE)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -128,7 +128,7 @@
 
 ---
 
-## Analytics (TC-ALG)
+## Аналітика (TC-ALG)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -169,7 +169,7 @@
 
 ---
 
-## System & DevOps (TC-SYS)
+## Система та DevOps (TC-SYS)
 
 | ID | Story | Type | Steps | Expected result | P |
 |----|-------|------|-------|-----------------|---|
@@ -177,7 +177,7 @@
 | TC-SYS-002 | US-SYS-01 | API | GET /version | version string | M |
 | TC-SYS-003 | US-SYS-03 | NF | Push PR with lint error | CI lint fails | H |
 | TC-SYS-004 | US-SYS-03 | NF | Push PR all green | CI test passes | H |
-| TC-SYS-005 | US-SYS-04 | NF | Merge to main | CD workflow triggers | H |
+| TC-SYS-005 | US-SYS-04 | NF | Actions → CD → deploy-all | Staging → prod deploy completes | H |
 | TC-SYS-006 | US-SYS-04 | NF | Staging smoke script | 5 health checks pass | H |
 | TC-SYS-007 | US-SYS-05 | NF | Manual rollback workflow | Green redeploys | M |
 | TC-SYS-008 | US-SYS-06 | F | Run app.seed | Demo login works | M |
@@ -203,6 +203,6 @@
 
 ---
 
-**Summary:** 120 manual test cases (12+10+8+12+10+15+6+12+15+10+10)
+**Підсумок:** 120 ручних тест-кейсів (12+10+8+12+10+15+6+12+15+10+10)
 
-Execute against local or staging URL. Record results in test run log or issue tracker.
+Виконувати на deployed URL або локально. Результати — у test run log або issue tracker.

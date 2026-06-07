@@ -1,28 +1,28 @@
-# UI wireframes (screen inventory)
+# Wireframes (інвентар екранів)
 
-Wireframes implemented as Jinja2 + Bootstrap 5 pages. Figma optional — screen map below matches live UI.
+Wireframes реалізовані як Jinja2 + Bootstrap 5. Figma опційно — карта екранів нижче відповідає live UI.
 
-## Screen map
+## Карта екранів
 
-| # | Route | Screen | Key elements |
-|---|-------|--------|--------------|
-| 1 | `/login` | Login | email, password, link to register |
-| 2 | `/register` | Register | name, email, password |
-| 3 | `/` | Dashboard | 4 KPI cards, pipeline avg days list |
-| 4 | `/companies` | Company list | table, Add company |
-| 5 | `/companies/new` | Company form | name, industry, size, website |
-| 6 | `/companies/{id}/edit` | Edit company | same fields + delete |
-| 7 | `/jobs` | Job list | title, company, salary, status |
-| 8 | `/jobs/new` | Job form | company select, JD textarea, salary |
-| 9 | `/jobs/{id}` | Job detail | description, keyword badges, track link |
-| 10 | `/applications` | Kanban board | 8 columns by stage, cards with scores |
-| 11 | `/applications/new` | New application | job + resume select, stage |
-| 12 | `/applications/{id}` | Application detail | scores, next action, history, notes |
-| 13 | `/resumes` | Resume list | cards, active badge, activate |
-| 14 | `/resumes/new` | Resume form | title, content textarea |
-| 15 | `/docs` | API Swagger | OpenAPI (external layout) |
+| # | Route | Екран | Ключові елементи |
+|---|-------|-------|------------------|
+| 1 | `/login` | Вхід | email, password, посилання на register |
+| 2 | `/register` | Реєстрація | name, email, password |
+| 3 | `/` | Dashboard | 4 KPI-картки, список avg days по стадіях |
+| 4 | `/companies` | Список компаній | таблиця, Add company |
+| 5 | `/companies/new` | Форма компанії | name, industry, size, website |
+| 6 | `/companies/{id}/edit` | Редагування | ті самі поля + delete |
+| 7 | `/jobs` | Список вакансій | title, company, salary, status |
+| 8 | `/jobs/new` | Форма вакансії | company select, JD textarea, salary |
+| 9 | `/jobs/{id}` | Деталі вакансії | description, keyword badges, track link |
+| 10 | `/applications` | Kanban | 8 колонок по stage, картки з scores |
+| 11 | `/applications/new` | Нова заявка | job + resume select, stage |
+| 12 | `/applications/{id}` | Деталі заявки | scores, next action, history, notes |
+| 13 | `/resumes` | Список резюме | картки, active badge, activate |
+| 14 | `/resumes/new` | Форма резюме | title, content textarea |
+| 15 | `/docs` | API Swagger | OpenAPI (окремий layout) |
 
-## User flow: first application
+## User flow: перша заявка
 
 ```mermaid
 flowchart TD
@@ -36,11 +36,11 @@ flowchart TD
   H --> I[View Suggest Next Action]
 ```
 
-## Design notes
+## Нотатки дизайну
 
-- **Navigation:** dark navbar on all authenticated pages
-- **Kanban:** horizontal scroll on mobile; stage dropdown on each card
-- **Scores:** badges for match % and priority on kanban cards
-- **Keywords:** badge list on job detail (from TF-IDF extract)
+- **Навігація:** темний navbar на всіх автентифікованих сторінках
+- **Kanban:** горизонтальний scroll на mobile; dropdown stage на картці
+- **Scores:** badges match % і priority на kanban-картках
+- **Keywords:** badge list на job detail (TF-IDF extract)
 
-Screenshots: capture from local `uvicorn` after `python -m app.seed` and add to this folder if required by course submission.
+Скріншоти: зняти з deployed URL після login `demo@jobcrm.dev` і додати в цю папку, якщо вимагає курс.

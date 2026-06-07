@@ -1,23 +1,22 @@
-# Continuous Delivery process
+# Процес Continuous Delivery
 
-Full deployment documentation for Job Hunt CRM. Summary also in [README.md](../../README.md).
+Документація deploy для Job Hunt CRM. Короткий опис — у [README.md](../../README.md).
 
-## Environments
+## Середовища
 
-| Environment | Railway service | URL secret | Purpose |
-|-------------|-----------------|------------|---------|
-| Staging | `RAILWAY_SERVICE_ID_STAGING` | `STAGING_URL` | Pre-prod validation |
-| Production blue | `RAILWAY_SERVICE_ID_PROD_BLUE` | `PRODUCTION_BLUE_URL` | Inactive slot (blue-green) |
-| Production green | `RAILWAY_SERVICE_ID_PROD_GREEN` | `PRODUCTION_URL` | Active traffic target |
+| Середовище | Railway service | Secret URL | Призначення |
+|------------|-----------------|------------|-------------|
+| Staging | `RAILWAY_SERVICE_ID_STAGING` | `STAGING_URL` | Перевірка перед prod |
+| Production blue | `RAILWAY_SERVICE_ID_PROD_BLUE` | `PRODUCTION_BLUE_URL` | Неактивний слот (blue-green) |
+| Production green | `RAILWAY_SERVICE_ID_PROD_GREEN` | `PRODUCTION_URL` | Активний публічний URL |
 
-## Pipeline trigger
+## Тригер pipeline
 
-1. Developer pushes to `main`
-2. **CI** workflow runs (lint + pytest + coverage)
-3. On CI success, **CD** workflow runs via `workflow_run`
-4. Manual full deploy: Actions → CD → Run workflow → `deploy-all`
+1. Push у `main` або PR → **CI** автоматично (lint + pytest + coverage)
+2. **CD лише вручну:** Actions → **CD** → Run workflow → `deploy-all` (branch `main`, після зеленого CI)
+3. Rollback: Actions → **CD** → `rollback-production` + git SHA
 
-## CD stages
+## Етапи CD
 
 ```mermaid
 sequenceDiagram
@@ -36,36 +35,36 @@ sequenceDiagram
   GH->>App: smoke PRODUCTION_URL
 ```
 
-## Blue-green strategy
+## Стратегія blue-green
 
-1. **Blue slot** receives new build first; smoke tests validate `/health`, `/version`, `/docs`.
-2. **Green slot** (public URL) receives the same build after blue passes — simulates traffic switch.
-3. Deploy manifests uploaded as artifacts (`staging.json`, `production-active.json`) with `git_sha`, `active_slot`, timestamp.
+1. **Blue slot** отримує новий build першим; smoke перевіряє `/health`, `/version`, `/docs`.
+2. **Green slot** (публічний URL) — той самий build після успішного blue (імітація перемикання трафіку).
+3. Deploy manifests зберігаються як artifacts (`staging.json`, `production-active.json`) з `git_sha`, `active_slot`, timestamp.
 
-## Rollback procedure
+## Rollback
 
-1. Identify last good commit SHA from Git history or manifest artifact.
+1. Знайти останній good commit SHA в Git або manifest artifact.
 2. GitHub → Actions → **CD** → Run workflow.
-3. Select action: `rollback-production`.
-4. Enter `rollback_sha` (full or short SHA).
-5. Workflow checks out that SHA and runs `railway up` on **green** service.
-6. Post-rollback smoke test on `PRODUCTION_URL`.
+3. Action: `rollback-production`.
+4. Вказати `rollback_sha` (повний або короткий SHA).
+5. Workflow checkout SHA і `railway up` на **green** service.
+6. Post-rollback smoke на `PRODUCTION_URL`.
 
-## Monitoring (post-deploy)
+## Моніторинг (post-deploy)
 
 [`scripts/smoke_test.sh`](../../scripts/smoke_test.sh):
 
-- 5× `GET /health` — expects `"status":"ok"` and `"db":"ok"`
+- 5× `GET /health` — очікується `"status":"ok"` і `"db":"ok"`
 - 1× `GET /version`
 - 1× `GET /docs` — Swagger HTML
 
-Railway healthcheck: `/health` (see [`railway.toml`](../../railway.toml)).
+Railway healthcheck: `/health` (див. [`railway.toml`](../../railway.toml)).
 
-## Database migrations
+## Міграції БД
 
-Every deploy runs `alembic upgrade head` via [`scripts/start.sh`](../../scripts/start.sh) before uvicorn starts.
+Кожен deploy виконує `alembic upgrade head` через [`scripts/start.sh`](../../scripts/start.sh) перед uvicorn.
 
-## Secrets checklist
+## Чеклист secrets (GitHub Actions)
 
 - [ ] `RAILWAY_TOKEN`
 - [ ] `RAILWAY_PROJECT_ID`
@@ -78,6 +77,6 @@ Every deploy runs `alembic upgrade head` via [`scripts/start.sh`](../../scripts/
 
 ## SemVer releases
 
-1. Update [`app/version.py`](../../app/version.py)
+1. Оновити [`app/version.py`](../../app/version.py)
 2. `git tag vX.Y.Z && git push origin vX.Y.Z`
-3. CI **semver** job validates tag ↔ version
+3. CI job **semver** перевіряє tag ↔ version
